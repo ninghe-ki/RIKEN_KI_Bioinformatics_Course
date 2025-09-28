@@ -1,0 +1,445 @@
+---
+title: "Assignment 1"
+author: "Patricia Angela Alvero Sibal"
+date: "2025-09-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(gtools)
+library(datasets)
+library(BiocManager) #BiocManager, the official package manager of Bioconductor, already installed previously
+library(airway) #load the airway dataset
+library(ggplot2)
+library(ggpubr)
+library(tidybiology)
+library(tidyverse)
+```
+
+# Description
+
+This document contains my answers for assignment 1 specifically Tasks 1 and 4-8. 
+
+### Task 1 - Literature
+
+2. Answer the following questions
+
+a. What is the medically relevant insight from the article?
+	Most methods to elucidate the function of lncRNA are limited in scope since they rely on a CRISPR-based knockdown system followed by a single cellular	phenotypic assay. CRISPR-based knocked out assays could also affect the transcription machinery at the divergent promoter, potentially inducing off-target effects. Moreover, relying on a single cellular phenotypic assay fails to capture the full spectrum of the lncRNA's functions along with the molecular pathways regulated by the lncRNA. The current study offers a more comprehensive high-throughput method of evaluating the function of numerous lncRNAs. By utilizing transcriptomic profiling through CAGE sequencing, the study's approach gives insights on which molecular pathways, gene expressions, and cellular phenotype are affected by the lncRNA beyond what is observable in a single assay. Moreover, this study utilizes antisense oligonucleotides to knockdown lncRNA which has a limited effect on the chromatin structure, allowing a more accurate analysis of lncRNA functions. The method described in this study facilitates a potentially much quicker and comprehensive method in determining which lncRNAs contribute to disease progression not just in cancer but also in other diseases. 
+
+b. Which genomics technology/ technologies were used?
+ 
+- Next Generation Sequencing via RNA sequencing and CAGE sequencing
+- Chromosome conformation capture
+- designing of antisense oligonucleotides
+
+3. List and explain at least three questions/ hypotheses you can think of that extend the analysis presented in the paper.
+
+a. Can the high knockdown efficiency of ASOs targeting lncRNA be observed when using a different cell line such as cancer cell lines or immune cells?
+- it would be very interesting to explore whether the system that the authors developed could also be applied to other types of cells. This could pave the way to identifying lncRNAs linked to T cell exhaustion or MHC Class I downregulation in cancer cells. 
+
+b. Do lncRNAs that produce overlapping phenotypic effects share common structural motifs or are they regulated by the same transcription factors?
+- if a common motif and TF could be found, it could offer insights on how to target therapeutically relevant lncRNAs. 
+
+c. Do isoforms of the same lncRNA induce the same effect?
+- lncRNAs have several isoforms. Determining which specific isoform is responsible for the effect allows for the development of a more precise therapeutic strategy. 
+
+### Task 4 - R basic operations
+
+1. What is the square root of 10?
+```{r 4.1, echo=TRUE}
+sqrt(10)
+```
+
+2. What is the logarithm of 32 to the base 2?
+```{r 4.2, echo=TRUE}
+log2(32) 
+```
+
+3. What is the sum of the numbers from 1 to 1000?
+```{r 4.3, echo=TRUE}
+sum(1:1000)
+```
+
+4. What is the sum of all even numbers from 2 to 1000?
+```{r 4.4, echo=TRUE}
+#seq with by = 2 lists every other number from 2 to 1000 thereby listing only even numbers
+sum(seq(2, 1000, by = 2)) 
+```
+
+5. How many pairwise comparisons are there for 100 genes?
+```{r 4.5, echo=TRUE}
+#combination instead of permutation since order doesnt matter for pairwise comparisons
+#choose(n,k) where n is the number of genes and k is 2 since we want pairwise comparisons
+choose(100, 2) 
+```
+
+6. And how many ways to arrange 100 genes in triples?
+```{r 4.6, echo=TRUE}
+#arrange means permutations, a function part of library(gtools)
+#permutations(n,k) where n is the number of genes and k is 3 since we want triples
+#permutations(n,k) generates a matrix with all the possible arrangement
+#nrow counts the number of rows of the matrix which corresponds to the number of arrangements
+nrow(permutations(100, 3))
+```
+
+### Task 5 - Using R example datasets
+
+2. Describe briefly the content of the CO2 dataset using the help function.
+```{r 5.2, echo=TRUE}
+?CO2 
+#The CO2 uptake of grass plants from Quebec and Mississippi was measured at several levels of ambient CO2 concentration. 
+```
+
+3. What is the average and median CO2 uptake of the plants from Quebec and Mississippi?
+```{r 5.3, echo=TRUE}
+head(CO2)  #see overview of CO2 data set
+mean(CO2$uptake[CO2$Type == "Mississippi"]) #choose rows of Mississippi plants only then calculate average of CO2 uptake
+median(CO2$uptake[CO2$Type == "Mississippi"])  #choose rows Mississippi plants only then calculate median of CO2 uptake
+mean(CO2$uptake[CO2$Type == "Quebec"]) #choose rows of Quebec plants only then calculate average of CO2 uptake
+median(CO2$uptake[CO2$Type == "Quebec"]) #choose rows Quebec plants only then calculate median of CO2 uptake
+```
+
+4. In the “airway” example data from Bioconductor, how many genes are expressed in each sample? How many genes are not expressed in any sample? 
+```{r 5.4, echo=TRUE}
+data(airway)
+head(airway) #assay(airway) contains the count table, rows are genes, columns are samples
+cat("Genes expressed in each sample:", colSums(assay(airway)!= 0))#count the number of non-zero entries per column
+#(assay(airway)) == 0) returns TRUE (1) if gene count is 0  
+#rowSums((assay(airway)) == 0)>0 returns TRUE (1) if gene count (row) is 0 in at least 1 sample (column)
+#sum(rowSums((assay(airway)) == 0)>0)  counts how many is TRUE
+cat("Genes not expressed in any sample:", sum(rowSums((assay(airway)) == 0)>0))
+```
+
+### Task 6 - R Functions
+
+1. Write a function that calculates the ratio of the mean and the median of a given
+vector.
+```{r 6.1, echo=TRUE}
+outlier_check <- function(vector_name){
+  mean(vector_name)/median(vector_name)
+}
+```
+
+2. Write a function that ignores the lowest and the highest value from a given vector and
+calculate the mean.
+```{r 6.2, echo=TRUE}
+mean_trimmed <- function(vector_name){
+  sorted_vector <- sort(vector_name, decreasing = TRUE)
+  trimmed_vector <- sorted_vector[2:(length(sorted_vector) - 1)]
+  mean(trimmed_vector)
+}
+```
+
+3. Write a short (max. 300 characters, no spaces) explanation of why, how, and when not to use
+pipes.
+
+  Pipes are used to make a chain of operations on the same dataset more concise and readable. Doing so avoids the use of        unneccessary intermediate variables. To use pipes, use %>% to pass data from one step to the next. Pipes cannot be           used if an assignment is needed mid-sequence or if there is no suitable function that readily performs your next chain       of commands. 
+
+4. Write a short explanation (max. 300 characters, no spaces) of why the apply-family of functions (apply, lapply, sapply etc.) could be useful.
+
+  they are useful because it makes it possible for one function to be applied to either all the rows or columns of a           matrix and even to each element in a list or vector. This is very convenient since it avoids manual subsetting and           iteration for each element prior to using the function. 
+
+
+### Task 7 - Basic visualization with R
+
+1. Compare the distributions of the body heights of the two species from the
+'magic_guys.csv' dataset graphically
+
+  a. using the basic 'hist' function as well as ‘ggplot’ and ‘geom_histogram’
+  functions from the ggplot2 package. Optimize the plots for example by trying
+  several different 'breaks'.
+  
+```{r 7.1.a, echo=TRUE}
+mycsv <- file.choose() #get data address
+magic_guys <- read.csv(mycsv)
+
+#understand the data
+View(magic_guys)
+summary(magic_guys)
+
+hist(magic_guys$length[magic_guys$species == "jedi"], #choose only jedi heights
+     breaks = 8,
+     xlab = "Height", # x axis label
+     main = "Distribution of Jedi Heights (Base R)") #title of the graph
+
+hist(magic_guys$length[magic_guys$species == "sith"], #choose only sith heights
+     breaks = 8,
+     xlab = "Heights", 
+     main = "Distribution of Sith Heights (Base R)")
+
+#ggplot needs a dataframe so choose jedi rows, keep all columns then 
+#choose the column length for plotting through aes(x =)
+gghist_jedi <- ggplot(magic_guys[magic_guys$species == "jedi", ], (aes(x=length))) + 
+  geom_histogram(bins = 8, fill = "grey", color = "black") + #fill is the color inside each bin while color is the outline 
+  theme_light() +  #color of the graph background
+  labs(x = "Heights", y = "Frequency")+ #axis labels
+  ggtitle("Distribution of Jedi Heights (ggplot)")
+
+gghist_jedi
+
+gghist_sith <- ggplot(magic_guys[magic_guys$species == "sith", ], (aes(x=length))) +
+  geom_histogram(bins = 8, fill = "grey", color = "black") +
+  theme_light()+ 
+  labs(x = "Heights", y = "Frequency")+
+  ggtitle("Distribution of Sith Heights (ggplot)")
+
+gghist_sith
+
+#small number of breaks/bins fail to accurately display distribution and pinpoint which range of heights are most abundant
+#simplest way to calculate number of breaks/bins is by Sturge's formula: ceiling(log2(length(magic_guys$length)) + 1)
+```
+
+
+  b. Do the same comparison as in a. but with boxplots.
+  
+```{r 7.1.b, echo=TRUE}
+
+#2 boxplots side by side showing height distribution per species
+boxplot(length ~ species, data = magic_guys,
+     ylab = "Height",
+     main = "Distribution of Heights per Species (Base R)")
+
+#2 boxplots side by side showing height distribution per species
+ggbox <- ggplot(magic_guys, (aes(x = species, y = length))) +
+  geom_boxplot(fill = "grey") + #color of the boxes
+  theme_light()+
+  labs(x = "Species", y = "Heights")+
+  ggtitle("Distribution of Heights per Species (ggplot)")
+
+ggbox #display the boxplot
+
+#boxplots makes it easier to compare the distribution in one glance than histograms but 
+#does not offer much information on skewness and gaps
+```
+
+  c. Save the plots with the ‘png’, ‘pdf’, and ‘svg’ formats. In which situation would
+you use which file format?
+```{r 7.1.c, echo=TRUE}
+out_dir <- "D:/RIKEN bioinformatics/RIKEN_KI_Bioinformatics_Course/plots" #define where the plots will be saved
+if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE) #if the folder doesn't exist, create the folder
+
+save_baseR <- function(code, name){
+  
+  #save as PNG
+  png(file.path(out_dir, paste0(name,".png")), width = 800, height = 600)
+  eval(substitute(code)) #evaluates the code for making the plot
+  dev.off()
+  
+  #save as PDF
+  pdf(file.path(out_dir, paste0(name,".pdf")), width = 8, height = 10 )
+  eval(substitute(code))
+  dev.off()
+  
+  #save as SVG
+  svg(file.path(out_dir, paste0(name,".svg")), width = 8, height = 10)
+  eval(substitute(code))
+  dev.off()
+  
+}
+
+save_ggplots <- function(code, name){
+  
+  #save as PNG
+  ggsave(file.path(out_dir, paste0(name,".png")), code, width = 8, height = 10)
+  
+  #save as PDF
+  ggsave(file.path(out_dir, paste0(name,".pdf")), code, width = 8, height = 10)
+  
+  #save as SVG
+  ggsave(file.path(out_dir, paste0(name,".pdf")), code, width = 8, height = 10)
+  
+}
+
+#save baseR histogram of sith
+save_baseR(
+  hist(magic_guys$length[magic_guys$species == "jedi"], 
+     breaks = 8,
+     xlab = "Height", 
+     main = "Distribution of Jedi Heights (Base R)"),
+  "jedi_histogram_baseR"
+)
+
+#save baseR histogram of jedi
+save_baseR(
+  hist(magic_guys$length[magic_guys$species == "sith"], 
+     breaks = 8,
+     xlab = "Heights", 
+     main = "Distribution of Sith Heights (Base R)"),
+  "sith_histogram_baseR"
+)
+
+#save baseR boxplots
+save_baseR(
+boxplot(length ~ species, data = magic_guys,
+     ylab = "Height",
+     main = "Distribution of Heights per Species (Base R)"),
+  "boxplots_baseR"
+)
+
+#save ggplot histogram of jedi
+save_ggplots(gghist_jedi, "jedi_histogram_ggplot")
+
+#save ggplot histogram of sith
+save_ggplots(gghist_sith, "sith_histogram_ggplot")
+
+#save ggplot boxplot
+save_ggplots(ggbox, "boxplots_ggplot")
+
+```
+  
+  - svg: for a scalable image that maintains high quality and readily editable
+  - png: for quick preview, gets pixelated when scaled up
+  - pdf: typically used for publication as quality is high and layout + fonts are preserved in different platforms, not          easily editable
+
+2.Load the gene expression data matrix from the ‘microarray_data.tab’ dataset
+
+  a. How big is the matrix in terms of rows and columns?
+```{r 7.2a, echo=TRUE}
+microarray_file <- file.choose()
+microarray_data <- read.table(microarray_file, header = TRUE, sep = "\t")
+dim(microarray_data) #gives the number of rows and columns, rows first then columns
+```
+
+  b. Count the missing values per gene and visualize this result.
+```{r 7.2b, echo=TRUE}
+View(microarray_data) #genes are in the columns
+
+#count how many NAs per column
+NA_table <- as.data.frame(colSums(is.na(microarray_data))) 
+colnames(NA_table) <- "NA_amount"
+head(NA_table)
+
+#plot
+ggplot(NA_table, (aes(x=NA_amount))) + 
+  geom_histogram(bins = 15, fill = "grey", color = "black") +
+  theme_light() + 
+  labs(x = "Number of NAs per gene", y="Number of genes")+ 
+  ggtitle("Distribution of the Number of NAs per Gene")
+```
+
+  c. Find the genes for which there are more than X% (X=10%, 20%, 50%) missing values.
+  
+```{r 7.2c, echo=TRUE}
+
+  NA_genes_list <- function(X){
+  threshold <- round((X/100) * nrow(microarray_data)) #X% of total number of samples
+  gene_names <- rownames(NA_table[NA_table$NA_amount >= threshold, , drop = FALSE] ) #gets the genes with X% missing values
+  #drop = FALSE ensures that it stays a data frame even when it only has one column
+  return(gene_names)
+  }
+
+  cat("genes with 10% missing values:\n", NA_genes_list(10),"\n") #genes which have 10% missing values #\n means next line
+  cat("genes with 20% missing values:\n", NA_genes_list(20),"\n") #genes which have 20% missing values
+  cat("genes with 50% missing values:\n", NA_genes_list(50),"\n") #genes which have 10% missing values
+```
+
+  d. Replace the missing values by the average expression value for the particular gene.
+  
+```{r 7.2d, echo=TRUE}
+genes_with_NA <- rownames(NA_table) #names of the columns with at least 1 NA
+
+for (name in genes_with_NA){
+  gene_mean <- mean(microarray_data[[name]], na.rm = TRUE) #mean of the column with at least 1 NA
+  needs_replacement <- which(is.na(microarray_data[[name]])) #which rows in that column have NA
+  
+  microarray_data[needs_replacement,name] <- gene_mean #replace each row containing NA within that column with the gene mean
+}
+```
+
+3. Visualize the data in the CO2 dataset in a way that gives you a deeper understanding
+of the data. What do you see?
+```{r 7.2e, echo=TRUE}
+ggplot(CO2, aes(x = conc, y = uptake, color = Type, shape = Treatment))+
+  geom_point(size = 4) +
+  theme_light() +
+  labs(x = "CO2 concentration", y="CO2 uptake")+ 
+  ggtitle("CO2 uptake vs Concentration per type and treatment")
+```
+  
+  - regardless of the CO2 concentration, Quebec plants always have a higher CO2 uptake than Mississippi plants
+  - plant type seems to affect CO2 uptake more significantly than CO2 concentration
+  - at every CO2 concentration, chilled plants typically have lower CO2 uptake especially in the case of Mississippi plants
+  
+# Task 8
+
+1. Install the Tidybiology package
+  a. Extract summary statistics (mean, median and maximum) for the following variables from the ‘chromosome’ data:                variations, protein coding genes, and miRNAs.
+```{r 8.a, echo=TRUE}
+data(chromosome)
+
+sum_stats <- chromosome %>% 
+  select(variations, protein_codinggenes, mi_rna) %>%  #subset to the columns variations, protein_codinggenes, mi_rna
+  pivot_longer(cols = c(variations, protein_codinggenes,mi_rna), names_to = "variable", values_to = "number") %>% #have all    variables listed in one column
+  group_by(variable) %>% 
+  summarize(average = mean(number, na.rm = TRUE), med = median(number, na.rm = TRUE), maximum = max(number, na.rm = TRUE))
+
+sum_stats
+```
+
+  b. How does the chromosome size distribute? Plot a graph that helps to visualize this by using ggplot2 package functions.
+  
+```{r 8.b, echo=TRUE}
+ggplot(chromosome, (aes(x = length_mm))) + 
+  geom_histogram(bins = 6, fill = "grey", color = "black") +
+  theme_light() + 
+  labs(x = "Chromosome length")+ 
+  ggtitle("Distribution of the Chromosome length")
+```
+
+   c. Does the number of protein coding genes or miRNAs correlate with the length of the chromosome? Make two separate plots       to visualize these relationships.
+```{r 8.c, echo=TRUE}
+ggplot(chromosome, aes(x = protein_codinggenes, y = length_mm))+
+  geom_point(size = 4) +
+  geom_smooth(method = "lm", color = "red") + 
+  theme_light() +
+  labs(x = "number of protein coding genes", y="chromosome length (mm)")+ 
+  ggtitle("chromosome length correlation with number of protein coding genes")+
+  stat_cor(label.y = 10.4) +
+  stat_regline_equation(label.y = 4.2)
+
+ggplot(chromosome, aes(x = mi_rna, y = length_mm))+
+  geom_point(size = 4) +
+  geom_smooth(method = "lm", color = "red") + 
+  theme_light() +
+  labs(x = "number of miRNAs", y="chromosome length (mm)")+ 
+  ggtitle("chromosome length correlation with number of protein coding genes") +
+  stat_cor(label.y = 10.4) +
+  stat_regline_equation(label.y = 4.2)
+
+```
+
+    - both the number of protein coding genes and number of miRNAs are positively correlated with the chromosome length.           However number of miRNAs depict a stronger correlation with chromosome length than the number of protein coding genes
+    
+  d. Calculate the same summary statistics for the ‘proteins’ data variables length and mass. Create a meaningful                 visualization of the relationship between these two variables by utilizing the ggplot2 package functions.
+  
+```{r 8.d, echo=TRUE}
+data(proteins)
+protein_sum_stats <- proteins %>% 
+  select(length, mass) %>%  
+  pivot_longer(cols = c(length, mass), names_to = "characteristics", values_to = "value") %>% 
+  group_by(characteristics) %>% 
+  summarize(average = mean(value, na.rm = TRUE), med = median(value, na.rm = TRUE), maximum = max(value, na.rm = TRUE))
+
+sum_stats
+
+ggplot(proteins, aes(x = length, y = mass))+
+  geom_point(size = 4) +
+  geom_smooth(method = "lm", color = "red") + 
+  theme_light() +
+  labs(x = "protein length", y="protein mass")+ 
+  ggtitle("relationship between protein mass and length")
+```
+  
+  - there is a very strong positive correlation between protein mass and length
+```
+
+## Overall conclusions
+
+- when dealing with datasets, its best to familiarize oneself with what data they're dealing with by using the help, view, head, structure functions
+
+- functions sometimes work only on very specific classes or datatypes so the type and class functions are very helpful
+
+- baseR plot functions are more straightforward but ggplot functions are better for customizing plots
+  
